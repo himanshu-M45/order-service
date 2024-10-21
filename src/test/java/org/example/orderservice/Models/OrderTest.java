@@ -1,10 +1,9 @@
 package org.example.orderservice.Models;
 
-import org.example.orderservice.Enums.OrderStatus;
+import org.example.orderservice.DTO.MenuItemDTO;
 import org.example.orderservice.Exceptions.CannotCreateOrderException;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,35 +12,46 @@ class OrderTest {
 
     @Test
     void testOrderCreationSuccess() {
-        OrderItem item1 = new OrderItem(1, "Item1", 100);
-        OrderItem item2 = new OrderItem(2, "Item2", 200);
-        Order order = new Order(1, 1, "123 Street", Arrays.asList(item1, item2));
+        MenuItemDTO item1 = new MenuItemDTO();
+        item1.setId(1);
+        item1.setName("Item1");
+        item1.setPrice(100);
+        MenuItemDTO item2 = new MenuItemDTO();
+        item2.setId(2);
+        item2.setName("Item2");
+        item2.setPrice(200);
+        Order order = new Order(1, 1, "123 Street");
 
         assertNotNull(order);
     }
 
     @Test
     void testOrderCreationFailure() {
-        OrderItem item1 = new OrderItem(1, "Item1", 100);
+        MenuItemDTO item1 = new MenuItemDTO();
+        item1.setId(1);
+        item1.setName("Item1");
+        item1.setPrice(100);
 
         assertThrows(CannotCreateOrderException.class, () -> {
-            new Order(null, 1, "123 Street", List.of(item1));
+            new Order(null, 1, "123 Street");
         });
 
         assertThrows(CannotCreateOrderException.class, () -> {
-            new Order(1, null, "123 Street", List.of(item1));
+            new Order(1, null, "123 Street");
         });
 
         assertThrows(CannotCreateOrderException.class, () -> {
-            new Order(1, 1, "", List.of(item1));
+            new Order(1, 1, "");
         });
 
         assertThrows(CannotCreateOrderException.class, () -> {
-            new Order(1, 1, "123 Street", null);
+            Order order = new Order(1, 1, "123 Street");
+            order.addOrderItems(null);
         });
 
         assertThrows(CannotCreateOrderException.class, () -> {
-            new Order(1, 1, "123 Street", List.of());
+            Order order = new Order(1, 1, "123 Street");
+            order.addOrderItems(List.of());
         });
     }
 }

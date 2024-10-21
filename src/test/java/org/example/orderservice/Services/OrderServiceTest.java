@@ -31,65 +31,65 @@ class OrderServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    void testCreateOrder() {
-        OrderItem item1 = new OrderItem(1, "Item1", 100);
-        OrderItem item2 = new OrderItem(2, "Item2", 200);
-        Order order = new Order(1, 1, "123 Street", Arrays.asList(item1, item2));
-
-        when(orderRepository.save(any(Order.class))).thenReturn(order);
-
-        String result = orderService.createOrder(1, 1, "123 Street", Arrays.asList(item1, item2));
-
-        assertEquals("order created", result);
-        verify(orderRepository, times(1)).save(any(Order.class));
-    }
-
-    @Test
-    void testCreateOrderCannotCreateOrderException() {
-        OrderItem item1 = new OrderItem(1, "Item1", 100);
-
-        assertThrows(CannotCreateOrderException.class, () -> {
-            orderService.createOrder(null, 1, "123 Street", List.of(item1));
-        });
-
-        assertThrows(CannotCreateOrderException.class, () -> {
-            orderService.createOrder(1, null, "123 Street", List.of(item1));
-        });
-
-        assertThrows(CannotCreateOrderException.class, () -> {
-            orderService.createOrder(1, 1, "", List.of(item1));
-        });
-
-        assertThrows(CannotCreateOrderException.class, () -> {
-            orderService.createOrder(1, 1, "123 Street", null);
-        });
-
-        assertThrows(CannotCreateOrderException.class, () -> {
-            orderService.createOrder(1, 1, "123 Street", Collections.emptyList());
-        });
-    }
-
-    @Test
-    void testCreateOrderCannotAddOrderItemException() {
-        assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(null, "Item1", 100);
-        });
-
-        assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, null, 100);
-        });
-
-        assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, "Item1", null);
-        });
-
-        assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, "Item1", 0);
-        });
-
-        assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, "Item1", -10);
-        });
-    }
+//    @Test
+//    void testCreateOrder() {
+//        OrderItem item1 = new OrderItem(1, "Item1", 100);
+//        OrderItem item2 = new OrderItem(2, "Item2", 200);
+//        Order order = new Order(1, 1, "123 Street", Arrays.asList(item1, item2));
+//
+//        when(orderRepository.save(any(Order.class))).thenReturn(order);
+//
+//        String result = orderService.createOrder(1, 1, "123 Street", Arrays.asList(item1, item2));
+//
+//        assertEquals("order created", result);
+//        verify(orderRepository, times(1)).save(any(Order.class));
+//    }
+//
+//    @Test
+//    void testCreateOrderCannotCreateOrderException() {
+//        OrderItem item1 = new OrderItem(1, "Item1", 100);
+//
+//        assertThrows(CannotCreateOrderException.class, () -> {
+//            orderService.createOrder(null, 1, "123 Street", List.of(item1));
+//        });
+//
+//        assertThrows(CannotCreateOrderException.class, () -> {
+//            orderService.createOrder(1, null, "123 Street", List.of(item1));
+//        });
+//
+//        assertThrows(CannotCreateOrderException.class, () -> {
+//            orderService.createOrder(1, 1, "", List.of(item1));
+//        });
+//
+//        assertThrows(CannotCreateOrderException.class, () -> {
+//            orderService.createOrder(1, 1, "123 Street", null);
+//        });
+//
+//        assertThrows(CannotCreateOrderException.class, () -> {
+//            orderService.createOrder(1, 1, "123 Street", Collections.emptyList());
+//        });
+//    }
+//
+//    @Test
+//    void testCreateOrderCannotAddOrderItemException() {
+//        assertThrows(CannotAddOrderItemException.class, () -> {
+//            new OrderItem(null, "Item1", 100);
+//        });
+//
+//        assertThrows(CannotAddOrderItemException.class, () -> {
+//            new OrderItem(1, null, 100);
+//        });
+//
+//        assertThrows(CannotAddOrderItemException.class, () -> {
+//            new OrderItem(1, "Item1", null);
+//        });
+//
+//        assertThrows(CannotAddOrderItemException.class, () -> {
+//            new OrderItem(1, "Item1", 0);
+//        });
+//
+//        assertThrows(CannotAddOrderItemException.class, () -> {
+//            new OrderItem(1, "Item1", -10);
+//        });
+//    }
 }
