@@ -20,9 +20,21 @@ public class CustomExceptionHandler {
                 .body(new ResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
     }
 
-    @ExceptionHandler(FailedToAddOrderItemException.class)
-    public ResponseEntity<ResponseDTO<String>> handleOrderItemsNotAvailableException(FailedToAddOrderItemException e) {
+    @ExceptionHandler(FailedToRetrieveOrderItemException.class)
+    public ResponseEntity<ResponseDTO<String>> handleOrderItemsNotAvailableException(FailedToRetrieveOrderItemException e) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(new ResponseDTO<>(HttpStatus.SERVICE_UNAVAILABLE.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(NoOrderItemsSelectedException.class)
+    public ResponseEntity<ResponseDTO<String>> handleNoOrderItemsSelectedException(NoOrderItemsSelectedException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ResponseDTO<String>> handleOrderNotFoundException(OrderNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ResponseDTO<>(HttpStatus.NOT_FOUND.value(), e.getMessage()));
     }
 }

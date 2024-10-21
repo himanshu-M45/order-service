@@ -1,6 +1,7 @@
 package org.example.orderservice.Models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import org.example.orderservice.DTO.MenuItemDTO;
 import org.example.orderservice.Enums.OrderStatus;
 import org.example.orderservice.Exceptions.CannotCreateOrderException;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
+@Getter
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

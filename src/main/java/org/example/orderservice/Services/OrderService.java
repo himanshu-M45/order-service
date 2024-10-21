@@ -1,13 +1,18 @@
 package org.example.orderservice.Services;
 
 import org.example.orderservice.DTO.MenuItemDTO;
-import org.example.orderservice.Exceptions.FailedToAddOrderItemException;
+import org.example.orderservice.DTO.OrderItemResponseDTO;
+import org.example.orderservice.DTO.OrderResponseDTO;
+import org.example.orderservice.Exceptions.FailedToRetrieveOrderItemException;
+import org.example.orderservice.Exceptions.NoOrderItemsSelectedException;
+import org.example.orderservice.Exceptions.OrderNotFoundException;
 import org.example.orderservice.Models.Order;
 import org.example.orderservice.Repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -15,34 +20,54 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     public String createOrder(Integer userId, Integer restaurantId, String deliveryAddress, String menuItemIds) {
-        // Create the order
-        Order order = new Order(userId, restaurantId, deliveryAddress);
-        orderRepository.save(order);
+        Order order = new Order(userId, restaurantId, deliveryAddress); // Create the order
 
-        // Add order items
+        // retrieve order items from catalog service
         List<MenuItemDTO> selectedMenuItems = getOrderList(restaurantId, menuItemIds, new CatalogServiceClient());
-        order.addOrderItems(selectedMenuItems);
+        if (selectedMenuItems == null || selectedMenuItems.isEmpty()) {
+            throw new FailedToRetrieveOrderItemException("failed to add order items, order not created");
+        }
 
-        // Save the order with items
-        orderRepository.save(order);
-
+        orderRepository.save(order); // save generated order
+        order.addOrderItems(selectedMenuItems); // Add order items to the order
+        orderRepository.save(order); // Save the order with items
         return "order created";
     }
 
     private List<MenuItemDTO> getOrderList(Integer restaurantId, String menuItemIds, CatalogServiceClient catalogServiceClient) {
         if (menuItemIds == null || menuItemIds.isEmpty()) {
-            throw new FailedToAddOrderItemException("no menu items selected");
+            throw new NoOrderItemsSelectedException("no menu items selected");
         }
         // get menuItems by restaurantId
         List<MenuItemDTO> menuItems = null;
         try {
             menuItems = catalogServiceClient.getMenuItemsByRestaurantId(restaurantId, menuItemIds);
         } catch (Exception e) {
-            throw new FailedToAddOrderItemException("failed to add order items: " + e.getMessage());
+            throw new FailedToRetrieveOrderItemException("failed to add order items: " + e.getMessage());
         }
-
-        // filter menuItems by selected menuItemId's
         return menuItems;
+    }
+
+    public List<Order> findAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        if (orders.isEmpty()) {
+            throw new OrderNotFoundException("no orders found");
+        }
+        return orders;
+    }
+
+    public OrderResponseDTO convertToDTO(Order order) {
+        OrderResponseDTO dto = new OrderResponseDTO();
+        dto.setOrderId(order.getId());
+        dto.setUserId(order.getUserId());
+        dto.setRestaurantId(order.getRestaurantId());
+        dto.setDeliveryAddress(order.getDeliveryAddress());
+        dto.setPrice(order.getTotalPrice());
+        dto.setStatus(order.getStatus().toString());
+        dto.setOrderItems(order.getOrderItems().stream()
+                .map(item -> new OrderItemResponseDTO(item.getMenuItemName(), item.getPrice()))
+                .collect(Collectors.toList()));
+        return dto;
     }
 
 }

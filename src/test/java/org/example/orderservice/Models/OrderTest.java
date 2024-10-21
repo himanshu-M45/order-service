@@ -1,6 +1,5 @@
 package org.example.orderservice.Models;
 
-import org.example.orderservice.DTO.MenuItemDTO;
 import org.example.orderservice.Exceptions.CannotCreateOrderException;
 import org.junit.jupiter.api.Test;
 
@@ -18,29 +17,36 @@ class OrderTest {
     }
 
     @Test
-    void testOrderCreationFailure() {
-        MenuItemDTO item1 = new MenuItemDTO();
-        item1.setId(1);
-        item1.setName("Item1");
-        item1.setPrice(100);
-
+    void testOrderCreationFailureWhenUserIdIsNull() {
         assertThrows(CannotCreateOrderException.class, () -> {
             new Order(null, 1, "123 Street");
         });
+    }
 
+    @Test
+    void testOrderCreationFailureWhenRestaurantIdIsNull() {
         assertThrows(CannotCreateOrderException.class, () -> {
             new Order(1, null, "123 Street");
         });
+    }
 
+    @Test
+    void testOrderCreationFailureWhenDeliveryAddressIsEmpty() {
         assertThrows(CannotCreateOrderException.class, () -> {
             new Order(1, 1, "");
         });
+    }
 
+    @Test
+    void testOrderCreationFailureWhenOrderItemsAreNull() {
         assertThrows(CannotCreateOrderException.class, () -> {
             Order order = new Order(1, 1, "123 Street");
             order.addOrderItems(null);
         });
+    }
 
+    @Test
+    void testOrderCreationFailureWhenOrderItemsAreEmpty() {
         assertThrows(CannotCreateOrderException.class, () -> {
             Order order = new Order(1, 1, "123 Street");
             order.addOrderItems(List.of());

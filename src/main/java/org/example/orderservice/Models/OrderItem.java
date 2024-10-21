@@ -6,6 +6,7 @@ import org.example.orderservice.Exceptions.CannotAddOrderItemException;
 
 @Entity
 @Table(name = "order_items")
+@Getter
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
