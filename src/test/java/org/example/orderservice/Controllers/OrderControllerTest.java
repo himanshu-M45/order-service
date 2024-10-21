@@ -47,6 +47,8 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode").value(201))
                 .andExpect(jsonPath("$.data").value("Order created successfully"));
+
+        verify(orderService, times(1)).createOrder(any(), any(), any(), any());
     }
 
     @Test
@@ -60,6 +62,8 @@ class OrderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value(400))
                 .andExpect(jsonPath("$.data").value("Cannot create order"));
+
+        verify(orderService, times(1)).createOrder(any(), any(), any(), any());
     }
 
     @Test
@@ -73,6 +77,8 @@ class OrderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value(400))
                 .andExpect(jsonPath("$.data").value("Cannot add order item"));
+
+        verify(orderService, times(1)).createOrder(any(), any(), any(), any());
     }
 
     @Test
@@ -86,6 +92,8 @@ class OrderControllerTest {
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.statusCode").value(503))
                 .andExpect(jsonPath("$.data").value("Failed to retrieve order item"));
+
+        verify(orderService, times(1)).createOrder(any(), any(), any(), any());
     }
 
     @Test
@@ -99,10 +107,12 @@ class OrderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value(400))
                 .andExpect(jsonPath("$.data").value("No order items selected"));
+
+        verify(orderService, times(1)).createOrder(any(), any(), any(), any());
     }
 
     @Test
-    void testGetAllOrders() throws Exception {
+    void testGetAllOrdersSuccess() throws Exception {
         when(orderService.findAllOrders()).thenReturn(List.of(new Order()));
         when(orderService.convertToDTO(new Order())).thenReturn(new OrderResponseDTO());
 
@@ -117,14 +127,40 @@ class OrderControllerTest {
 
     @Test
     void testOrderNotFoundException() throws Exception {
-        when(orderService.createOrder(any(), any(), any(), any()))
-                .thenThrow(new OrderNotFoundException("Order not found"));
+        when(orderService.findAllOrders()).thenThrow(new OrderNotFoundException("Order not found"));
 
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"userId\":1,\"restaurantId\":1,\"deliveryAddress\":\"123 Street\",\"orderItems\":\"1,2\"}"))
+        mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode").value(404))
                 .andExpect(jsonPath("$.data").value("Order not found"));
+
+        verify(orderService, times(1)).findAllOrders();
+    }
+
+    @Test
+    void testGetOrderByIdSuccess() throws Exception {
+        when(orderService.findOrderById(1)).thenReturn(new Order());
+        when(orderService.convertToDTO(new Order())).thenReturn(new OrderResponseDTO());
+
+        mockMvc.perform(get("/orders/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode").value(200));
+
+        verify(orderService, times(1)).findOrderById(1);
+    }
+
+    @Test
+    void testGetOrderByIdNotFound() throws Exception {
+        when(orderService.findOrderById(1)).thenThrow(new OrderNotFoundException("Order not found"));
+
+        mockMvc.perform(get("/orders/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.statusCode").value(404))
+                .andExpect(jsonPath("$.data").value("Order not found"));
+
+        verify(orderService, times(1)).findOrderById(1);
     }
 }

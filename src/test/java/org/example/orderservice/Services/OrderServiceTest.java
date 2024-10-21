@@ -13,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -157,5 +158,21 @@ class OrderServiceTest {
         });
 
         verify(orderRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testFindOrderByIdSuccess() {
+        when(orderRepository.findById(1)).thenReturn(Optional.of(new Order()));
+
+        orderService.findOrderById(1);
+
+        verify(orderRepository, times(1)).findById(1);
+    }
+
+    @Test
+    void testFindOrderByIdNotFound() {
+        when(orderRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(1));
     }
 }

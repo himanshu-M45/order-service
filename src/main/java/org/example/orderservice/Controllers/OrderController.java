@@ -34,4 +34,11 @@ public class OrderController {
         List<OrderResponseDTO> orderResponseDTOS = orders.stream().map(orderService::convertToDTO).toList();
         return ResponseEntity.ok(new ResponseDTO<>(HttpStatus.OK.value(), orderResponseDTOS));
     }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<Object> getOrderById(@PathVariable int orderId) {
+        Order order = orderService.findOrderById(orderId);
+        OrderResponseDTO orderResponseDTO = orderService.convertToDTO(order);
+        return ResponseEntity.ok(new ResponseDTO<>(HttpStatus.OK.value(), orderResponseDTO));
+    }
 }

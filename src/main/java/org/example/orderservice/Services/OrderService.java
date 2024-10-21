@@ -70,4 +70,11 @@ public class OrderService {
         return dto;
     }
 
+    public Order findOrderById(int orderId) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            throw new OrderNotFoundException("order not found");
+        }
+        return order;
+    }
 }
