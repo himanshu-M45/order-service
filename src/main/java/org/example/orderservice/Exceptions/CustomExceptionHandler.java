@@ -19,4 +19,10 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
     }
+
+    @ExceptionHandler(FailedToAddOrderItemException.class)
+    public ResponseEntity<ResponseDTO<String>> handleOrderItemsNotAvailableException(FailedToAddOrderItemException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ResponseDTO<>(HttpStatus.SERVICE_UNAVAILABLE.value(), e.getMessage()));
+    }
 }

@@ -1,6 +1,7 @@
 package org.example.orderservice.Services;
 
 import org.example.orderservice.DTO.MenuItemDTO;
+import org.example.orderservice.Exceptions.FailedToAddOrderItemException;
 import org.example.orderservice.Models.Order;
 import org.example.orderservice.Repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,15 @@ public class OrderService {
     }
 
     private List<MenuItemDTO> getOrderList(Integer restaurantId, String menuItemIds, CatalogServiceClient catalogServiceClient) {
+        if (menuItemIds == null || menuItemIds.isEmpty()) {
+            throw new FailedToAddOrderItemException("no menu items selected");
+        }
         // get menuItems by restaurantId
         List<MenuItemDTO> menuItems = null;
         try {
             menuItems = catalogServiceClient.getMenuItemsByRestaurantId(restaurantId, menuItemIds);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FailedToAddOrderItemException("failed to add order items: " + e.getMessage());
         }
 
         // filter menuItems by selected menuItemId's
