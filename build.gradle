@@ -24,6 +24,7 @@ dependencies {
     implementation 'org.postgresql:postgresql' //	postgresql
     implementation 'org.projectlombok:lombok:1.18.24' //	lombok
     annotationProcessor 'org.projectlombok:lombok:1.18.24' //	lombok
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' //	jpa
 }
 
 tasks.named('test') {
