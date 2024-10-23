@@ -11,6 +11,8 @@ import org.example.orderservice.Repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,7 @@ public class OrderService {
     public String createOrder(Integer userId, Integer restaurantId, String deliveryAddress, String menuItemIds) {
         // retrieve order items from catalog service
         List<MenuItemDTO> selectedMenuItems = getOrderList(restaurantId, menuItemIds, new CatalogServiceClient());
-        if (selectedMenuItems == null || selectedMenuItems.isEmpty()) {
+        if (selectedMenuItems.isEmpty()) {
             throw new FailedToRetrieveOrderItemException("failed to add order items, order not created");
         }
 
@@ -34,13 +36,24 @@ public class OrderService {
         if (menuItemIds == null || menuItemIds.isEmpty()) {
             throw new NoOrderItemsSelectedException("no menu items selected");
         }
-        // get menuItems by restaurantId
-        List<MenuItemDTO> menuItems = null;
-        try {
-            menuItems = catalogServiceClient.getMenuItemsByRestaurantId(restaurantId, menuItemIds);
-        } catch (Exception e) {
-            throw new FailedToRetrieveOrderItemException("failed to add order items: " + e.getMessage());
+        List<Integer> menuItemIdList = Arrays.stream(menuItemIds.split(","))
+                .map(String::trim)
+                .filter(id -> !id.isEmpty())
+                .map(Integer::parseInt)
+                .toList();
+
+        List<MenuItemDTO> menuItems = new ArrayList<>();
+        for (Integer menuItemId : menuItemIdList) {
+            MenuItemDTO menuItem = catalogServiceClient
+                    .getMenuItemByRestaurantId(restaurantId, menuItemId);
+
+            if (menuItem != null) {
+                menuItems.add(menuItem);
+            } else {
+                throw new FailedToRetrieveOrderItemException("failed to retrieve order items");
+            }
         }
+
         return menuItems;
     }
 

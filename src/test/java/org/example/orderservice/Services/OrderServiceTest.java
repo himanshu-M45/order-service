@@ -36,8 +36,8 @@ class OrderServiceTest {
 
     @Test
     void testCreateOrderSuccess() {
-        List<MenuItemDTO> menuItems = List.of(new MenuItemDTO(1, "Item1", 100));
-        when(catalogServiceClient.getMenuItemsByRestaurantId(anyInt(), anyString())).thenReturn(menuItems);
+        MenuItemDTO menuItems = new MenuItemDTO(1, "Item1", 100);
+        when(catalogServiceClient.getMenuItemByRestaurantId(anyInt(), anyInt())).thenReturn(menuItems);
         when(orderRepository.save(any(Order.class))).thenReturn(new Order());
 
         String result = orderService.createOrder(1, 1, "123 Street", "1");
@@ -77,22 +77,15 @@ class OrderServiceTest {
 
     @Test
     void testFailedToRetrieveOrderItemException() {
-        when(catalogServiceClient.getMenuItemsByRestaurantId(anyInt(), anyString()))
+        when(catalogServiceClient.getMenuItemByRestaurantId(anyInt(), anyInt()))
                 .thenThrow(new FailedToRetrieveOrderItemException("Service unavailable"));
 
         assertThrows(FailedToRetrieveOrderItemException.class, () -> {
             orderService.createOrder(1, 1, "123 Street", "155");
         });
 
-        verify(catalogServiceClient, times(0)).getMenuItemsByRestaurantId(anyInt(), anyString());
+        verify(catalogServiceClient, times(0)).getMenuItemByRestaurantId(anyInt(), anyInt());
     }
-
-//    @Test
-//    void testCannotAddOrderItemExceptionWhenItemIdIsNull() {
-//        assertThrows(CannotAddOrderItemException.class, () -> {
-//            new OrderItem(null, "Item1", 100);
-//        });
-//    }
 
     @Test
     void testCannotAddOrderItemExceptionWhenItemNameIsNull() {
