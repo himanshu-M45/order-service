@@ -11,7 +11,6 @@ public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer orderId;
     private String menuItemName;
     @Getter
     private Integer price;
@@ -19,11 +18,10 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(Integer orderId, String menuItemName, Integer price) {
-        if (orderId == null || menuItemName == null || price == null || price <= 0) {
+    public OrderItem(String menuItemName, Integer price) {
+        if (menuItemName == null || price == null || price <= 0) {
             throw new CannotAddOrderItemException("orderId, menuItemName, and price must not be null");
         }
-        this.orderId = orderId;
         this.menuItemName = menuItemName;
         this.price = price;
     }

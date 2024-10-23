@@ -20,17 +20,13 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     public String createOrder(Integer userId, Integer restaurantId, String deliveryAddress, String menuItemIds) {
-        Order order = new Order(userId, restaurantId, deliveryAddress); // Create the order
-
         // retrieve order items from catalog service
         List<MenuItemDTO> selectedMenuItems = getOrderList(restaurantId, menuItemIds, new CatalogServiceClient());
         if (selectedMenuItems == null || selectedMenuItems.isEmpty()) {
             throw new FailedToRetrieveOrderItemException("failed to add order items, order not created");
         }
 
-        orderRepository.save(order); // save generated order
-        order.addOrderItems(selectedMenuItems); // Add order items to the order
-        orderRepository.save(order); // Save the order with items
+        orderRepository.save(new Order(userId, restaurantId, deliveryAddress, selectedMenuItems)); // save generated order
         return "order created";
     }
 

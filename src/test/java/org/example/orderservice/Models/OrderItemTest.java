@@ -8,7 +8,7 @@ class OrderItemTest {
 
     @Test
     void testOrderItemCreation() {
-        OrderItem item = new OrderItem(1, "Item1", 100);
+        OrderItem item = new OrderItem("Item1", 100);
 
         assertNotNull(item);
         assertEquals(100, item.getPrice());

@@ -11,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,27 +35,15 @@ class OrderServiceTest {
     }
 
     @Test
-    void testCreateOrderSuccess() throws Exception {
-        MenuItemDTO item1 = new MenuItemDTO();
-        item1.setId(1);
-        item1.setName("Item1");
-        item1.setPrice(100);
-
-        List<MenuItemDTO> menuItems = List.of(item1);
-
-        when(catalogServiceClient.getMenuItemsByRestaurantId(1, "1")).thenReturn(menuItems);
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
-            Order order = invocation.getArgument(0);
-            Field idField = Order.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(order, 1); // Mock the generated ID
-            return order;
-        });
+    void testCreateOrderSuccess() {
+        List<MenuItemDTO> menuItems = List.of(new MenuItemDTO(1, "Item1", 100));
+        when(catalogServiceClient.getMenuItemsByRestaurantId(anyInt(), anyString())).thenReturn(menuItems);
+        when(orderRepository.save(any(Order.class))).thenReturn(new Order());
 
         String result = orderService.createOrder(1, 1, "123 Street", "1");
 
         assertEquals("order created", result);
-        verify(orderRepository, times(2)).save(any(Order.class));
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
 
@@ -68,8 +55,8 @@ class OrderServiceTest {
     }
 
     @Test
-    void testCannotCreateOrderExceptionWhenRestaurantIdIsNull() {
-        assertThrows(CannotCreateOrderException.class, () -> {
+    void testFailedToRetrieveOrderItemExceptionWhenRestaurantIdIsNull() {
+        assertThrows(FailedToRetrieveOrderItemException.class, () -> {
             orderService.createOrder(1, null, "123 Street","1,2");
         });
     }
@@ -100,45 +87,45 @@ class OrderServiceTest {
         verify(catalogServiceClient, times(0)).getMenuItemsByRestaurantId(anyInt(), anyString());
     }
 
-    @Test
-    void testCannotAddOrderItemExceptionWhenItemIdIsNull() {
-        assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(null, "Item1", 100);
-        });
-    }
+//    @Test
+//    void testCannotAddOrderItemExceptionWhenItemIdIsNull() {
+//        assertThrows(CannotAddOrderItemException.class, () -> {
+//            new OrderItem(null, "Item1", 100);
+//        });
+//    }
 
     @Test
     void testCannotAddOrderItemExceptionWhenItemNameIsNull() {
         assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, null, 100);
+            new OrderItem(null, 100);
         });
     }
 
     @Test
     void testCreateOrderCannotAddOrderItemExceptionWhenItemPriceIsNull() {
         assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, "Item1", null);
+            new OrderItem("Item1", null);
         });
     }
 
     @Test
     void testCannotAddOrderItemExceptionWhenItemPriceIsZero() {
         assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, "Item1", 0);
+            new OrderItem("Item1", 0);
         });
     }
 
     @Test
     void testCannotAddOrderItemExceptionWhenItemPriceIsNegative() {
         assertThrows(CannotAddOrderItemException.class, () -> {
-            new OrderItem(1, "Item1", -10);
+            new OrderItem("Item1", -10);
         });
     }
 
     @Test
     void testFindAllOrdersSuccess() {
-        Order order1 = new Order(1, 1, "123 Street");
-        Order order2 = new Order(2, 2, "456 Avenue");
+        Order order1 = new Order(1, 1, "123 Street", List.of(new MenuItemDTO(1, "Item1", 100)));
+        Order order2 = new Order(2, 2, "456 Avenue", List.of(new MenuItemDTO(2, "Item2", 200)));
 
         when(orderRepository.findAll()).thenReturn(List.of(order1, order2));
 
