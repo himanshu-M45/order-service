@@ -1,6 +1,5 @@
-package org.example.orderservice.Services;
+package org.example.orderservice.Clients;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.orderservice.DTO.MenuItemDTO;

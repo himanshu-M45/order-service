@@ -41,4 +41,10 @@ public class OrderController {
         OrderResponseDTO orderResponseDTO = orderService.convertToDTO(order);
         return ResponseEntity.ok(new ResponseDTO<>(HttpStatus.OK.value(), orderResponseDTO));
     }
+
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<Object> updateOrderStatus(@PathVariable int orderId, @RequestParam String status) {
+        String response = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(new ResponseDTO<>(HttpStatus.OK.value(), response));
+    }
 }

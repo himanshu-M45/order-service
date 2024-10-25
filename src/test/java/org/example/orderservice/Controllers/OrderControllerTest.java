@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -162,5 +164,87 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.data").value("Order not found"));
 
         verify(orderService, times(1)).findOrderById(1);
+    }
+
+    @Test
+    void testUpdateOrderStatusSuccess() {
+        when(orderService.updateOrderStatus(1, "DE_ALLOCATED")).thenReturn("Order status updated successfully");
+
+        String result = orderService.updateOrderStatus(1, "DE_ALLOCATED");
+
+        assertEquals("Order status updated successfully", result);
+        verify(orderService, times(1)).updateOrderStatus(1, "DE_ALLOCATED");
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidStatus() {
+        doThrow(new InvalidOrderStatusException("Invalid order status: INVALID_STATUS"))
+                .when(orderService).updateOrderStatus(1, "INVALID_STATUS");
+
+        assertThrows(InvalidOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "INVALID_STATUS");
+        });
+
+        verify(orderService, times(1)).updateOrderStatus(1, "INVALID_STATUS");
+    }
+
+    @Test
+    void testUpdateOrderStatusCannotChangeToOrderCreated() {
+        doThrow(new InvalidOrderStatusException("Cannot change status to ORDER_CREATED"))
+                .when(orderService).updateOrderStatus(1, "ORDER_CREATED");
+
+        assertThrows(InvalidOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "ORDER_CREATED");
+        });
+
+        verify(orderService, times(1)).updateOrderStatus(1, "ORDER_CREATED");
+    }
+
+    @Test
+    void testUpdateOrderStatusOrderNotFound() {
+        doThrow(new OrderNotFoundException("Order not found"))
+                .when(orderService).updateOrderStatus(1, "DE_ALLOCATED");
+
+        assertThrows(OrderNotFoundException.class, () -> {
+            orderService.updateOrderStatus(1, "DE_ALLOCATED");
+        });
+
+        verify(orderService, times(1)).updateOrderStatus(1, "DE_ALLOCATED");
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidTransitionFromOrderCreated() {
+        doThrow(new CannotUpdateOrderStatusException("Can only change status from ORDER_CREATED to DE_ALLOCATED"))
+                .when(orderService).updateOrderStatus(1, "OUT_FOR_DELIVERY");
+
+        assertThrows(CannotUpdateOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "OUT_FOR_DELIVERY");
+        });
+
+        verify(orderService, times(1)).updateOrderStatus(1, "OUT_FOR_DELIVERY");
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidTransitionFromDeAllocated() {
+        doThrow(new CannotUpdateOrderStatusException("Can only change status from DE_ALLOCATED to OUT_FOR_DELIVERY"))
+                .when(orderService).updateOrderStatus(1, "DELIVERED");
+
+        assertThrows(CannotUpdateOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "DELIVERED");
+        });
+
+        verify(orderService, times(1)).updateOrderStatus(1, "DELIVERED");
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidTransitionFromOutForDelivery() {
+        doThrow(new CannotUpdateOrderStatusException("Can only change status from OUT_FOR_DELIVERY to DELIVERED"))
+                .when(orderService).updateOrderStatus(1, "DE_ALLOCATED");
+
+        assertThrows(CannotUpdateOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "DE_ALLOCATED");
+        });
+
+        verify(orderService, times(1)).updateOrderStatus(1, "DE_ALLOCATED");
     }
 }

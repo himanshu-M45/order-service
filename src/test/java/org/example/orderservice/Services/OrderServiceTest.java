@@ -1,6 +1,8 @@
 package org.example.orderservice.Services;
 
+import org.example.orderservice.Clients.CatalogServiceClient;
 import org.example.orderservice.DTO.MenuItemDTO;
+import org.example.orderservice.Enums.OrderStatus;
 import org.example.orderservice.Exceptions.*;
 import org.example.orderservice.Models.Order;
 import org.example.orderservice.Models.OrderItem;
@@ -46,23 +48,28 @@ class OrderServiceTest {
         verify(orderRepository, times(1)).save(any(Order.class));
     }
 
-
     @Test
     void testCannotCreateOrderExceptionWhenUserIdIsNull() {
+        MenuItemDTO menuItems = new MenuItemDTO(1, "Item1", 100);
+        when(catalogServiceClient.getMenuItemByRestaurantId(anyInt(), anyInt())).thenReturn(menuItems);
         assertThrows(CannotCreateOrderException.class, () -> {
             orderService.createOrder(null, 1, "123 Street", "1,2");
         });
     }
 
     @Test
-    void testFailedToRetrieveOrderItemExceptionWhenRestaurantIdIsNull() {
-        assertThrows(FailedToRetrieveOrderItemException.class, () -> {
+    void testInvalidRestaurantIdExceptionWhenRestaurantIdIsNull() {
+        MenuItemDTO menuItems = new MenuItemDTO(1, "Item1", 100);
+        when(catalogServiceClient.getMenuItemByRestaurantId(anyInt(), anyInt())).thenReturn(menuItems);
+        assertThrows(InvalidRestaurantIdException.class, () -> {
             orderService.createOrder(1, null, "123 Street","1,2");
         });
     }
 
     @Test
     void testCannotCreateOrderExceptionWhenDeliveryAddressIsNotProvided() {
+        MenuItemDTO menuItems = new MenuItemDTO(1, "Item1", 100);
+        when(catalogServiceClient.getMenuItemByRestaurantId(anyInt(), anyInt())).thenReturn(menuItems);
         assertThrows(CannotCreateOrderException.class, () -> {
             orderService.createOrder(1, 1, "","1,2");
         });
@@ -84,7 +91,7 @@ class OrderServiceTest {
             orderService.createOrder(1, 1, "123 Street", "155");
         });
 
-        verify(catalogServiceClient, times(0)).getMenuItemByRestaurantId(anyInt(), anyInt());
+        verify(catalogServiceClient, times(1)).getMenuItemByRestaurantId(anyInt(), anyInt());
     }
 
     @Test
@@ -154,5 +161,77 @@ class OrderServiceTest {
         when(orderRepository.findById(1)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(1));
+    }
+
+    @Test
+    void testUpdateOrderStatusSuccess() {
+        Order order = new Order();
+        order.updateStatus(OrderStatus.ORDER_CREATED);
+
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+
+        String result = orderService.updateOrderStatus(1, "DE_ALLOCATED");
+
+        assertEquals("Order status updated successfully", result);
+        verify(orderRepository, times(1)).updateOrderStatus(1, OrderStatus.DE_ALLOCATED);
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidStatus() {
+        assertThrows(InvalidOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "INVALID_STATUS");
+        });
+    }
+
+    @Test
+    void testUpdateOrderStatusCannotChangeToOrderCreated() {
+        assertThrows(InvalidOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "ORDER_CREATED");
+        });
+    }
+
+    @Test
+    void testUpdateOrderStatusOrderNotFound() {
+        when(orderRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(OrderNotFoundException.class, () -> {
+            orderService.updateOrderStatus(1, "DE_ALLOCATED");
+        });
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidTransitionFromOrderCreated() {
+        Order order = new Order();
+        order.updateStatus(OrderStatus.ORDER_CREATED);
+
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+
+        assertThrows(CannotUpdateOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "OUT_FOR_DELIVERY");
+        });
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidTransitionFromDeAllocated() {
+        Order order = new Order();
+        order.updateStatus(OrderStatus.DE_ALLOCATED);
+
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+
+        assertThrows(CannotUpdateOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "DELIVERED");
+        });
+    }
+
+    @Test
+    void testUpdateOrderStatusInvalidTransitionFromOutForDelivery() {
+        Order order = new Order();
+        order.updateStatus(OrderStatus.OUT_FOR_DELIVERY);
+
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+
+        assertThrows(CannotUpdateOrderStatusException.class, () -> {
+            orderService.updateOrderStatus(1, "DE_ALLOCATED");
+        });
     }
 }

@@ -50,4 +50,8 @@ public class Order {
                 .mapToInt(OrderItem::getPrice)
                 .sum();
     }
+
+    public void updateStatus(OrderStatus status) {
+        this.status = status;
+    }
 }

@@ -37,4 +37,22 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ResponseDTO<>(HttpStatus.NOT_FOUND.value(), e.getMessage()));
     }
+
+    @ExceptionHandler(InvalidOrderStatusException.class)
+    public ResponseEntity<ResponseDTO<String>> handleInvalidOrderStatusException(InvalidOrderStatusException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(CannotUpdateOrderStatusException.class)
+    public ResponseEntity<ResponseDTO<String>> handleCannotUpdateOrderStatusException(CannotUpdateOrderStatusException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidRestaurantIdException.class)
+    public ResponseEntity<ResponseDTO<String>> handleInvalidRestaurantIdException(InvalidRestaurantIdException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
+    }
 }

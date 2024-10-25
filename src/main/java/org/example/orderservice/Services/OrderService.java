@@ -1,11 +1,11 @@
 package org.example.orderservice.Services;
 
+import org.example.orderservice.Clients.CatalogServiceClient;
 import org.example.orderservice.DTO.MenuItemDTO;
 import org.example.orderservice.DTO.OrderItemResponseDTO;
 import org.example.orderservice.DTO.OrderResponseDTO;
-import org.example.orderservice.Exceptions.FailedToRetrieveOrderItemException;
-import org.example.orderservice.Exceptions.NoOrderItemsSelectedException;
-import org.example.orderservice.Exceptions.OrderNotFoundException;
+import org.example.orderservice.Enums.OrderStatus;
+import org.example.orderservice.Exceptions.*;
 import org.example.orderservice.Models.Order;
 import org.example.orderservice.Repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +21,12 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private CatalogServiceClient catalogServiceClient;
+
     public String createOrder(Integer userId, Integer restaurantId, String deliveryAddress, String menuItemIds) {
         // retrieve order items from catalog service
-        List<MenuItemDTO> selectedMenuItems = getOrderList(restaurantId, menuItemIds, new CatalogServiceClient());
+        List<MenuItemDTO> selectedMenuItems = getOrderList(restaurantId, menuItemIds);
         if (selectedMenuItems.isEmpty()) {
             throw new FailedToRetrieveOrderItemException("failed to add order items, order not created");
         }
@@ -32,7 +35,10 @@ public class OrderService {
         return "order created";
     }
 
-    private List<MenuItemDTO> getOrderList(Integer restaurantId, String menuItemIds, CatalogServiceClient catalogServiceClient) {
+    private List<MenuItemDTO> getOrderList(Integer restaurantId, String menuItemIds) {
+        if (restaurantId == null) {
+            throw new InvalidRestaurantIdException("invalid restaurant id");
+        }
         if (menuItemIds == null || menuItemIds.isEmpty()) {
             throw new NoOrderItemsSelectedException("no menu items selected");
         }
@@ -85,5 +91,37 @@ public class OrderService {
             throw new OrderNotFoundException("order not found");
         }
         return order;
+    }
+
+    public String updateOrderStatus(int orderId, String status) {
+        // Validate the received status string
+        OrderStatus newStatus;
+        try {
+            newStatus = OrderStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidOrderStatusException("Invalid order status: " + status);
+        }
+
+        if (newStatus == OrderStatus.ORDER_CREATED) {
+            throw new InvalidOrderStatusException("Cannot change status to ORDER_CREATED");
+        }
+
+        // Fetch the order from the database
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException("Order not found"));
+
+        // Check the current status of the order and ensure the transition rules are followed
+        OrderStatus currentStatus = order.getStatus();
+        if (currentStatus == OrderStatus.ORDER_CREATED && newStatus != OrderStatus.DE_ALLOCATED) {
+            throw new CannotUpdateOrderStatusException("Can only change status from ORDER_CREATED to DE_ALLOCATED");
+        } else if (currentStatus == OrderStatus.DE_ALLOCATED && newStatus != OrderStatus.OUT_FOR_DELIVERY) {
+            throw new CannotUpdateOrderStatusException("Can only change status from DE_ALLOCATED to OUT_FOR_DELIVERY");
+        } else if (currentStatus == OrderStatus.OUT_FOR_DELIVERY && newStatus != OrderStatus.DELIVERED) {
+            throw new CannotUpdateOrderStatusException("Can only change status from OUT_FOR_DELIVERY to DELIVERED");
+        }
+
+        // Update the order status in the database
+        orderRepository.updateOrderStatus(orderId, newStatus);
+
+        return "Order status updated successfully";
     }
 }
