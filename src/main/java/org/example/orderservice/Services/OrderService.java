@@ -120,7 +120,8 @@ public class OrderService {
         }
 
         // Update the order status in the database
-        orderRepository.updateOrderStatus(orderId, newStatus);
+        order.updateStatus(newStatus);
+        orderRepository.save(order);
 
         return "Order status updated successfully";
     }

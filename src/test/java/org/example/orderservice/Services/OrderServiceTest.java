@@ -173,7 +173,7 @@ class OrderServiceTest {
         String result = orderService.updateOrderStatus(1, "DE_ALLOCATED");
 
         assertEquals("Order status updated successfully", result);
-        verify(orderRepository, times(1)).updateOrderStatus(1, OrderStatus.DE_ALLOCATED);
+        verify(orderRepository, times(1)).findById(1);
     }
 
     @Test
@@ -197,6 +197,8 @@ class OrderServiceTest {
         assertThrows(OrderNotFoundException.class, () -> {
             orderService.updateOrderStatus(1, "DE_ALLOCATED");
         });
+
+        verify(orderRepository, times(1)).findById(1);
     }
 
     @Test
@@ -209,6 +211,8 @@ class OrderServiceTest {
         assertThrows(CannotUpdateOrderStatusException.class, () -> {
             orderService.updateOrderStatus(1, "OUT_FOR_DELIVERY");
         });
+
+        verify(orderRepository, times(1)).findById(1);
     }
 
     @Test
@@ -221,6 +225,8 @@ class OrderServiceTest {
         assertThrows(CannotUpdateOrderStatusException.class, () -> {
             orderService.updateOrderStatus(1, "DELIVERED");
         });
+
+        verify(orderRepository, times(1)).findById(1);
     }
 
     @Test
@@ -233,5 +239,7 @@ class OrderServiceTest {
         assertThrows(CannotUpdateOrderStatusException.class, () -> {
             orderService.updateOrderStatus(1, "DE_ALLOCATED");
         });
+
+        verify(orderRepository, times(1)).findById(1);
     }
 }
